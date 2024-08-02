@@ -42,9 +42,5 @@ func main() {
 	fmt.Println("转出成功，等待链上校验后进行账号部署")
 	time.Sleep(5 * time.Minute)
 	// 地址部署
-	// priAddr, err := utils.HexToFelt("0x4ea2beff0491e82b930ca8988f8c4647c675802d0d2dfb9539c9a8de35de4af")
-	// if err != nil {
-	// 	panic(fmt.Sprintf("deployAddressFeeAccountPri is err"))
-	// }
 	chain.DeployAddress(priAddr)
 }
