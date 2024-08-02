@@ -3,6 +3,7 @@ package chain
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -13,8 +14,8 @@ import (
 var client *rpc.Provider
 
 func init() {
-	// c, e := rpc.NewProvider("https://starknet-mainnet.blastapi.io")
-	c, e := rpc.NewProvider("https://starknet-mainnet.public.blastapi.io")
+	// c, e := rpc.NewProvider("https://starknet-mainnet.public.blastapi.io")
+	c, e := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
 	if e != nil {
 		log.Fatalf("Failed to connect to starkNet:%v", e)
 	}
@@ -94,4 +95,16 @@ func isNft1155(contractAddress string) bool {
 		}
 	}
 	return false
+}
+
+func balance(contractAddress, addr string) {
+	address, _ := utils.HexToFelt(addr)
+	if data, err := call(contractAddress, "balanceOf", []*felt.Felt{address}); err == nil {
+		if len(data) == 2 {
+			_balance, _ := strconv.Atoi(data[0].Text(10))
+			fmt.Println(_balance)
+		}
+	} else {
+		fmt.Println(err)
+	}
 }

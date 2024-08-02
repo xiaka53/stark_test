@@ -10,24 +10,19 @@ import (
 	"math/big"
 )
 
-func Transfer(account_addr, public_key, privateKey, contractAddr, _func string) {
-	account_address, err := utils.HexToFelt(account_addr)
-	if err != nil {
-		panic(err.Error())
-	}
+// func Transfer(account_addr, public_key, privateKey, contractAddr, _func string) {
+func Transfer(privateKey, toAddr, contractAddr, amount *felt.Felt, _func string) {
+	public_key := exportPubKey(privateKey)
+	account_addr, err := exportPubAddr(public_key, privateKey)
+
 	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	fakePrivKeyBI, ok := new(big.Int).SetString(privateKey.Text(16), 16)
 	if !ok {
-		panic(err.Error())
+		panic("privatekey is err")
 	}
 
-	ks.Put(public_key, fakePrivKeyBI)
-
-	maxfee, err := utils.HexToFelt("0x9184e72a000")
-	if err != nil {
-		panic(err.Error())
-	}
-	accnt, err := account.NewAccount(client, account_address, public_key, ks, 0)
+	ks.Put(public_key.String(), fakePrivKeyBI)
+	accnt, err := account.NewAccount(client, account_addr, public_key.String(), ks, 2)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -36,24 +31,17 @@ func Transfer(account_addr, public_key, privateKey, contractAddr, _func string) 
 		panic(rpcErr)
 	}
 	InvokeTx := rpc.InvokeTxnV1{
-		MaxFee:        maxfee,
+		MaxFee:        new(felt.Felt).SetUint64(500000000000000),
 		Version:       rpc.TransactionV1,
 		Nonce:         nonce,
 		Type:          rpc.TransactionType_Invoke,
 		SenderAddress: accnt.AccountAddress,
 	}
-	contractAddress, err := utils.HexToFelt(contractAddr)
-	if err != nil {
-		panic(err.Error())
-	}
-	amount, err := utils.HexToFelt("0x2")
-	if err != nil {
-		panic(err.Error())
-	}
+	amountDown := new(felt.Felt).SetUint64(0)
 	FnCall := rpc.FunctionCall{
-		ContractAddress:    contractAddress,
+		ContractAddress:    contractAddr,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(_func),
-		Calldata:           []*felt.Felt{account_address, amount},
+		Calldata:           []*felt.Felt{toAddr, amount, amountDown},
 	}
 	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
 	if err != nil {
